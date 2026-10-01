@@ -1,0 +1,3 @@
+01/10/2026
+A IA Replit foi utilizada para dar base e gerar protótipos funcionais e navegáveis para a aplicação. O seguinte prompt foi utilizado:
+Crie um protótipo de interface mobile para um app de gestão de receitas e compras. Desenhe uma tela inicial, uma tela de despensa e uma tela de emergência (painel de apoio a vítimas de violência), acessada via gatilho oculto de sua escolha. Utilize dados mockados.
