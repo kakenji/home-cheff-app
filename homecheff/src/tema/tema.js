@@ -1,8 +1,3 @@
-// ============================================================
-// Tema visual do HomeCheff — cores e fonte tiradas do protótipo
-// de telas da Entrega 1. Centralizar aqui evita repetir códigos
-// de cor em cada tela.
-// ============================================================
 import { Platform } from "react-native";
 
 export const cores = {
@@ -19,5 +14,4 @@ export const cores = {
   dourado: "#B08A4E",
 };
 
-// Fonte com serifa para os títulos (usa as fontes do sistema, sem baixar nada).
 export const fonteTitulo = Platform.select({ ios: "Georgia", android: "serif", default: "serif" });

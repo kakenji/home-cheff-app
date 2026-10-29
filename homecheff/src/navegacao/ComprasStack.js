@@ -1,8 +1,3 @@
-// ============================================================
-// Stack da aba "Despensa": lista de compras → novo/editar item.
-// A tela do formulário recebe "aoEntrarNoApoio" (função do App.js)
-// para poder abrir a área oculta quando o gatilho for detectado.
-// ============================================================
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ListaComprasScreen from "../screens/compras/ListaComprasScreen";

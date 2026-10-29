@@ -1,8 +1,3 @@
-// ============================================================
-// CRUD 4 — DIÁRIO SEGURO (CREATE e UPDATE): data, hora e descrição
-// do ocorrido. Com "ocorrencia" é edição (acrescentar detalhes).
-// "Apagar definitivamente" = HARD DELETE (sem deleted_at).
-// ============================================================
 import React from "react";
 import { ScrollView, StyleSheet, Alert } from "react-native";
 import CampoTexto from "../../componentes/CampoTexto";

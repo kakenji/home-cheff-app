@@ -1,4 +1,3 @@
-// Título grande com serifa e linha de apoio acima (padrão do protótipo).
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { cores, fonteTitulo } from "../tema/tema";

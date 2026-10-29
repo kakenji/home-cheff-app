@@ -1,9 +1,3 @@
-// ============================================================
-// CRUD 4 — DIÁRIO SEGURO / IncidentLog (READ): histórico
-// cronológico (mais recente primeiro) com visual de "nota de
-// receita" para manter a estética da fachada. O ícone de lixeira
-// faz HARD DELETE: o registro é destruído do banco, sem deleted_at.
-// ============================================================
 import React from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -11,8 +5,6 @@ import { cores, fonteTitulo } from "../../tema/tema";
 import { ocorrencias } from "../../dados/mockData";
 
 export default function DiarioScreen({ navigation }) {
-  // Ordem cronológica inversa. As datas do mock já estão em ordem; com a API,
-  // a ordenação virá do banco (ORDER BY data DESC, hora DESC).
   const lista = [...ocorrencias].reverse();
 
   function aoApagar(registro) {

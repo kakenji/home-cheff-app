@@ -1,4 +1,3 @@
-// Campo de formulário (rótulo + input). Não controlado nesta etapa.
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { cores } from "../tema/tema";

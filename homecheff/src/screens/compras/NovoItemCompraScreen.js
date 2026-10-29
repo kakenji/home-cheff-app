@@ -1,13 +1,3 @@
-// ============================================================
-// CRUD 2 — LISTA DE COMPRAS (CREATE e UPDATE) + GATILHO.
-//
-// O campo "Nome" é controlado por useState porque o app precisa ler
-// o que foi digitado para chamar a API simulada. Se a resposta for
-// 202 + "x-area-segura" (nome exatamente "Pimenta 180"), o item NÃO
-// é salvo e o app troca para a área oculta (aoEntrarNoApoio), sem
-// alerta nem mensagem. Qualquer outro nome segue o fluxo normal.
-// A regra vale no Create E no Update, como pede a especificação.
-// ============================================================
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Alert } from "react-native";
 import CampoTexto from "../../componentes/CampoTexto";
