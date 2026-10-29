@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import ApoioHomeScreen from "../screens/apoio/ApoioHomeScreen";
 import RedeApoioScreen from "../screens/apoio/RedeApoioScreen";
-import NovoContatoScreen from "../screens/apoio/NovoContatoScreen";
+//import NovoContatoScreen from "../screens/apoio/NovoContatoScreen";
 import DiarioScreen from "../screens/apoio/DiarioScreen";
 import NovaOcorrenciaScreen from "../screens/apoio/NovaOcorrenciaScreen";
 import { cores, fonteTitulo } from "../tema/tema";
