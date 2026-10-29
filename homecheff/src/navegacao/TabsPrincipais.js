@@ -1,8 +1,3 @@
-// ============================================================
-// Tab Navigator da FACHADA: Início, Receitas e Despensa (despensa + lista de compras).
-// Só a aba "Despensa" precisa de "aoEntrarNoApoio", porque é lá que
-// mora o gatilho (item "Pimenta 180").
-// ============================================================
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";

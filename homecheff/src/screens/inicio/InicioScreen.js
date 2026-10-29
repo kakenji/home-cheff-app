@@ -1,7 +1,3 @@
-// ============================================================
-// TELA "Início" (fachada): saudação, receita em destaque (a
-// primeira receita ativa) e atalhos para Receitas e Compras.
-// ============================================================
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";

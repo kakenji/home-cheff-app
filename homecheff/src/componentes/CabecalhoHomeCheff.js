@@ -1,8 +1,3 @@
-// ============================================================
-// Cabeçalho da FACHADA (logo + nome + avatar). É só decoração:
-// o gatilho do disfarce NÃO está aqui, está no cadastro de itens
-// da lista de compras ("Pimenta 180").
-// ============================================================
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

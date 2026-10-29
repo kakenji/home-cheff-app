@@ -1,4 +1,3 @@
-// Aviso padrão da Entrega 2: os formulários ainda não gravam nada.
 import { Alert } from "react-native";
 
 export function avisarEntrega2(navigation, acao) {

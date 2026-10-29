@@ -1,9 +1,3 @@
-// ============================================================
-// CRUD 1 — RECEITAS (READ do detalhe + UPDATE + DELETE): mostra
-// ingredientes e modo de preparo. "Editar" abre o formulário
-// preenchido; "Excluir" é SOFT DELETE (a API grava deleted_at e a
-// receita some das listas, mas continua no banco).
-// ============================================================
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, Alert } from "react-native";
 import BotaoPrincipal from "../../componentes/BotaoPrincipal";

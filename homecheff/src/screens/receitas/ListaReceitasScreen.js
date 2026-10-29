@@ -1,8 +1,3 @@
-// ============================================================
-// CRUD 1 — RECEITAS (READ): lista as receitas ATIVAS (deletedAt
-// nulo) e permite buscar por nome. A busca usa useState — o
-// único estado do app além do modoApoio e do gatilho.
-// ============================================================
 import React, { useState } from "react";
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";

@@ -1,9 +1,3 @@
-// ============================================================
-// CRUD 1 — RECEITAS (CREATE e UPDATE): título, ingredientes (um por
-// linha, com a quantidade — é assim que a usuária ajusta uma
-// quantidade na edição) e modo de preparo (um passo por linha).
-// Com o parâmetro "receita" os campos vêm preenchidos.
-// ============================================================
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import CampoTexto from "../../componentes/CampoTexto";

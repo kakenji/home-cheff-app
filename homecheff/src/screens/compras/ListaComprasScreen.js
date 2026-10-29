@@ -1,11 +1,3 @@
-// ============================================================
-// TELA "Despensa" (aba Despensa do protótipo). Tem duas partes:
-//  1) "O que tem em casa" — só exibição (não é um dos 4 CRUDs).
-//  2) CRUD 2 — LISTA DE COMPRAS (READ): o que FALTA comprar e, abaixo,
-//     o que já foi comprado (is_bought = true). Tocar num item abre o
-//     formulário em edição, com "Marcar como comprado" (UPDATE) e
-//     "Remover da lista" (DELETE).
-// ============================================================
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
