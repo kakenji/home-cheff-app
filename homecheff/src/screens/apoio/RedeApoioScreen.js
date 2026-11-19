@@ -1,21 +1,64 @@
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { useCallback, useState } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking, Platform } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { cores, fonteTitulo } from "../../tema/tema";
-import { contatos } from "../../dados/mockData";
+import EstadoCarregamento from "../../componentes/EstadoCarregamento";
+import CartaoMensagemAjuda from "../../componentes/CartaoMensagemAjuda";
+import { avisarErro, confirmar } from "../../componentes/alertas";
+import useDadosDaApi from "../../hooks/useDadosDaApi";
+import { listarContatos, removerContato } from "../../servicos/contatos";
+import { buscarUsuarioAtual, atualizarUsuarioAtual } from "../../servicos/usuarios";
+import { MENSAGEM_AJUDA_PADRAO } from "../../dados/mensagemAjuda";
+import { cores, fonteTitulo, sombra, sombraForte } from "../../tema/tema";
 
 export default function RedeApoioScreen({ navigation }) {
+  const { dados: contatos, setDados: setContatos, carregando, erro, recarregar } = useDadosDaApi(listarContatos, []);
+  const [mensagem, setMensagem] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let ativo = true;
+      buscarUsuarioAtual({ forcar: true })
+        .then((u) => ativo && setMensagem(u.mensagemAjuda || MENSAGEM_AJUDA_PADRAO))
+        .catch(() => ativo && setMensagem(MENSAGEM_AJUDA_PADRAO));
+      return () => {
+        ativo = false;
+      };
+    }, [])
+  );
+
+  async function aoSalvarMensagem(texto) {
+    try {
+      const usuario = await atualizarUsuarioAtual({ mensagemAjuda: texto });
+      setMensagem(usuario.mensagemAjuda || texto);
+      return true;
+    } catch (e) {
+      avisarErro(e, "Não foi possível salvar a mensagem");
+      return false;
+    }
+  }
+
   function aoEnviarSms(contato) {
-    Alert.alert(
-      "Exemplo da Entrega 2",
-      `Aqui o app vai abrir o SMS para ${contato.nome} já com a sua localização atual (GPS). Isso vem nas próximas entregas.`
+    const numero = contato.celular.replace(/\D/g, "");
+    const separador = Platform.OS === "ios" ? "&" : "?";
+    Linking.openURL(`sms:${numero}${separador}body=${encodeURIComponent(mensagem || MENSAGEM_AJUDA_PADRAO)}`).catch((e) =>
+      avisarErro(e, "Não foi possível abrir o SMS")
     );
   }
 
   function aoRemover(contato) {
-    Alert.alert("Remover contato?", `${contato.nome} sai da sua rede de apoio.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Remover", style: "destructive" },
-    ]);
+    confirmar("Remover contato?", `${contato.nome} sai da sua rede de apoio.`, "Remover", async () => {
+      try {
+        await removerContato(contato.id);
+        setContatos((atuais) => atuais.filter((c) => c.id !== contato.id));
+      } catch (e) {
+        avisarErro(e, "Não foi possível remover");
+      }
+    });
+  }
+
+  if (erro || (carregando && contatos.length === 0)) {
+    return <EstadoCarregamento carregando={carregando} erro={erro} aoTentarNovamente={recarregar} />;
   }
 
   return (
@@ -24,8 +67,14 @@ export default function RedeApoioScreen({ navigation }) {
         data={contatos}
         keyExtractor={(item) => item.id}
         contentContainerStyle={estilos.lista}
+        refreshing={carregando}
+        onRefresh={recarregar}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
-          <Text style={estilos.intro}>Pessoas de extrema confiança que podem ser avisadas por SMS. Todos os contatos aqui são fictícios.</Text>
+          <View>
+            <CartaoMensagemAjuda mensagem={mensagem ?? ""} carregando={mensagem === null} aoSalvar={aoSalvarMensagem} />
+            <Text style={estilos.intro}>Pessoas de extrema confiança que podem ser avisadas por SMS.</Text>
+          </View>
         }
         ListEmptyComponent={<Text style={estilos.vazio}>Você ainda não cadastrou ninguém. Toque em “+ Novo contato”.</Text>}
         renderItem={({ item }) => (
@@ -47,7 +96,7 @@ export default function RedeApoioScreen({ navigation }) {
         )}
       />
 
-      <TouchableOpacity style={estilos.botaoNovo} onPress={() => navigation.navigate("NovoContato")}>
+      <TouchableOpacity activeOpacity={0.85} style={estilos.botaoNovo} onPress={() => navigation.navigate("NovoContato")}>
         <Text style={estilos.botaoNovoTexto}>+ Novo contato</Text>
       </TouchableOpacity>
     </View>
@@ -76,6 +125,7 @@ const estilos = StyleSheet.create({
     marginTop: 24,
   },
   card: {
+    ...sombra,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: cores.cartao,
@@ -117,6 +167,7 @@ const estilos = StyleSheet.create({
     paddingHorizontal: 8,
   },
   botaoNovo: {
+    ...sombraForte,
     position: "absolute",
     bottom: 20,
     left: 20,

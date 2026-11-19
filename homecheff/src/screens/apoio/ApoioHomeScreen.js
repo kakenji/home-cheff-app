@@ -1,18 +1,20 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Linking } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking, ActivityIndicator } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import CabecalhoApoio from "../../componentes/CabecalhoApoio";
 import BotaoPrincipal from "../../componentes/BotaoPrincipal";
+import { confirmar } from "../../componentes/alertas";
 import { cores, fonteTitulo } from "../../tema/tema";
-import { contatos, canaisOficiais, canalEmergencia } from "../../dados/mockData";
+import { canaisOficiais, canalEmergencia } from "../../dados/canaisOficiais";
+import useDadosDaApi from "../../hooks/useDadosDaApi";
+import { listarContatos } from "../../servicos/contatos";
 
 function abrirCanal(canal) {
-  Alert.alert(canal.titulo, "Deseja abrir este canal agora?", [
-    { text: "Cancelar", style: "cancel" },
-    { text: "Abrir", onPress: () => Linking.openURL(canal.acao) },
-  ]);
+  confirmar(canal.titulo, "Deseja abrir este canal agora?", "Abrir", () => Linking.openURL(canal.acao));
 }
 
 export default function ApoioHomeScreen({ navigation, aoSair }) {
+  const { dados: contatos, carregando, erro } = useDadosDaApi(listarContatos, []);
+
   return (
     <View style={estilos.container}>
       <CabecalhoApoio aoSair={aoSair} />
@@ -26,6 +28,13 @@ export default function ApoioHomeScreen({ navigation, aoSair }) {
         <View style={[estilos.cartao, { backgroundColor: cores.verdeClaro }]}>
           <Text style={estilos.apoio}>REDE DE CONFIANÇA</Text>
           <Text style={estilos.cartaoTitulo}>Pessoas escolhidas por você</Text>
+          {carregando && contatos.length === 0 ? (
+            <ActivityIndicator color={cores.verde} style={{ marginVertical: 12 }} />
+          ) : null}
+          {erro ? <Text style={estilos.contatoDetalhe}>Não foi possível carregar seus contatos agora.</Text> : null}
+          {!carregando && !erro && contatos.length === 0 ? (
+            <Text style={estilos.contatoDetalhe}>Nenhuma pessoa cadastrada ainda.</Text>
+          ) : null}
           <View style={estilos.contatos}>
             {contatos.slice(0, 2).map((c) => (
               <View key={c.id} style={estilos.contato}>
@@ -76,7 +85,7 @@ export default function ApoioHomeScreen({ navigation, aoSair }) {
         <View style={estilos.aviso}>
           <Ionicons name="information-circle-outline" size={18} color={cores.textoSuave} />
           <Text style={estilos.avisoTexto}>
-            Protótipo acadêmico com dados fictícios. Não substitui atendimento policial, jurídico, psicológico ou de saúde. Em
+            Protótipo acadêmico. Não substitui atendimento policial, jurídico, psicológico ou de saúde. Em
             emergência real, ligue 190.
           </Text>
         </View>
