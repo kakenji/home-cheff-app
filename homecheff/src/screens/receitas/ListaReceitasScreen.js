@@ -2,12 +2,20 @@ import React, { useState } from "react";
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import TituloTela from "../../componentes/TituloTela";
-import { cores, fonteTitulo } from "../../tema/tema";
-import { receitasAtivas } from "../../dados/mockData";
+import FotoReceita from "../../componentes/FotoReceita";
+import EstadoCarregamento from "../../componentes/EstadoCarregamento";
+import useDadosDaApi from "../../hooks/useDadosDaApi";
+import { listarReceitas } from "../../servicos/receitas";
+import { cores, fonteTitulo, sombra, sombraForte } from "../../tema/tema";
 
 export default function ListaReceitasScreen({ navigation }) {
   const [busca, setBusca] = useState("");
-  const lista = receitasAtivas().filter((r) => r.titulo.toLowerCase().includes(busca.trim().toLowerCase()));
+  const { dados: receitas, carregando, erro, recarregar } = useDadosDaApi(listarReceitas, []);
+  const lista = receitas.filter((r) => r.titulo.toLowerCase().includes(busca.trim().toLowerCase()));
+
+  if (erro || (carregando && receitas.length === 0)) {
+    return <EstadoCarregamento carregando={carregando} erro={erro} aoTentarNovamente={recarregar} />;
+  }
 
   return (
     <View style={estilos.container}>
@@ -16,6 +24,8 @@ export default function ListaReceitasScreen({ navigation }) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={estilos.lista}
         keyboardShouldPersistTaps="handled"
+        refreshing={carregando}
+        onRefresh={recarregar}
         ListHeaderComponent={
           <View>
             <TituloTela apoio="SEU CADERNO" titulo="Suas receitas" />
@@ -36,11 +46,9 @@ export default function ListaReceitasScreen({ navigation }) {
         }
         renderItem={({ item }) => (
           <TouchableOpacity style={estilos.card} onPress={() => navigation.navigate("DetalheReceita", { receitaId: item.id })}>
-            <View style={estilos.foto}>
-              <Ionicons name="restaurant-outline" size={26} color={cores.verde} />
-            </View>
+            <FotoReceita uri={item.imagemUrl} style={estilos.foto} />
             <View style={estilos.info}>
-              <Text style={estilos.categoria}>{item.categoria}</Text>
+              {item.categoria ? <Text style={estilos.categoria}>{item.categoria}</Text> : null}
               <Text style={estilos.titulo}>{item.titulo}</Text>
               <Text style={estilos.meta}>{item.tempoPreparo} min · {item.ingredientes.length} ingredientes</Text>
             </View>
@@ -49,7 +57,7 @@ export default function ListaReceitasScreen({ navigation }) {
         )}
       />
 
-      <TouchableOpacity style={estilos.botaoNovo} onPress={() => navigation.navigate("NovaReceita")}>
+      <TouchableOpacity activeOpacity={0.85} style={estilos.botaoNovo} onPress={() => navigation.navigate("NovaReceita")}>
         <Text style={estilos.botaoNovoTexto}>+ Nova receita</Text>
       </TouchableOpacity>
     </View>
@@ -90,6 +98,7 @@ const estilos = StyleSheet.create({
     lineHeight: 19,
   },
   card: {
+    ...sombra,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: cores.cartao,
@@ -100,9 +109,9 @@ const estilos = StyleSheet.create({
     marginBottom: 12,
   },
   foto: {
-    width: 54,
-    height: 54,
-    borderRadius: 14,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
     backgroundColor: cores.verdeClaro,
     alignItems: "center",
     justifyContent: "center",
@@ -130,6 +139,7 @@ const estilos = StyleSheet.create({
     marginTop: 3,
   },
   botaoNovo: {
+    ...sombraForte,
     position: "absolute",
     bottom: 20,
     left: 20,
