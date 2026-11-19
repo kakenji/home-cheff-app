@@ -1,32 +1,59 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import TituloTela from "../../componentes/TituloTela";
-import { cores, fonteTitulo } from "../../tema/tema";
-import { itensCompra, despensa } from "../../dados/mockData";
+import EstadoCarregamento from "../../componentes/EstadoCarregamento";
+import { avisarErro } from "../../componentes/alertas";
+import useDadosDaApi from "../../hooks/useDadosDaApi";
+import { listarItensCompra, atualizarItemCompra } from "../../servicos/itensCompra";
+import { cores, fonteTitulo, sombra, sombraForte } from "../../tema/tema";
 
-const filtros = ["Tudo", "Geladeira", "Armário"];
+const filtros = ["Tudo", "Geladeira", "Armário", "Freezer"];
 
 export default function ListaComprasScreen({ navigation }) {
-  const faltam = itensCompra.filter((c) => !c.comprado);
-  const comprados = itensCompra.filter((c) => c.comprado);
+  const [filtro, setFiltro] = useState("Tudo");
+  const { dados: itens, setDados: setItens, carregando, erro, recarregar } = useDadosDaApi(listarItensCompra, []);
+
+  const faltam = itens.filter((c) => !c.comprado);
+  const despensa = itens.filter((c) => c.comprado);
+  const despensaFiltrada = despensa.filter((d) => filtro === "Tudo" || d.local === filtro);
+
+  async function alternarComprado(item) {
+    const comprado = !item.comprado;
+    setItens((atuais) => atuais.map((i) => (i.id === item.id ? { ...i, comprado } : i)));
+    try {
+      await atualizarItemCompra(item.id, { comprado });
+    } catch (e) {
+      setItens((atuais) => atuais.map((i) => (i.id === item.id ? { ...i, comprado: item.comprado } : i)));
+      avisarErro(e, "Não foi possível atualizar");
+    }
+  }
 
   function linha(c) {
     return (
-      <TouchableOpacity key={c.id} style={estilos.linha} onPress={() => navigation.navigate("NovoItemCompra", { itemCompra: c })}>
-        <Ionicons name={c.comprado ? "checkmark-circle" : "ellipse-outline"} size={26} color={c.comprado ? cores.verde : cores.borda} />
-        <View style={estilos.info}>
+      <View key={c.id} style={estilos.linha}>
+        <TouchableOpacity onPress={() => alternarComprado(c)} hitSlop={8}>
+          <Ionicons name={c.comprado ? "checkmark-circle" : "ellipse-outline"} size={26} color={c.comprado ? cores.verde : cores.borda} />
+        </TouchableOpacity>
+        <TouchableOpacity style={estilos.info} onPress={() => navigation.navigate("NovoItemCompra", { itemCompra: c })}>
           <Text style={[estilos.nome, c.comprado && estilos.nomeComprado]}>{c.nome}</Text>
           {c.quantidade ? <Text style={estilos.quantidade}>{c.quantidade}</Text> : null}
-        </View>
+        </TouchableOpacity>
         <Ionicons name="chevron-forward" size={16} color={cores.textoSuave} />
-      </TouchableOpacity>
+      </View>
     );
+  }
+
+  if (erro || (carregando && itens.length === 0)) {
+    return <EstadoCarregamento carregando={carregando} erro={erro} aoTentarNovamente={recarregar} />;
   }
 
   return (
     <View style={estilos.container}>
-      <ScrollView contentContainerStyle={estilos.conteudo}>
+      <ScrollView
+        contentContainerStyle={estilos.conteudo}
+        refreshControl={<RefreshControl refreshing={carregando} onRefresh={recarregar} tintColor={cores.verde} />}
+      >
         <TituloTela apoio="SUA COZINHA" titulo="Sua despensa" />
 
         <View style={estilos.destaque}>
@@ -41,41 +68,38 @@ export default function ListaComprasScreen({ navigation }) {
         </View>
 
         <View style={estilos.filtros}>
-          {filtros.map((f, i) => (
-            <View key={f} style={[estilos.chip, i === 0 && estilos.chipAtivo]}>
-              <Text style={[estilos.chipTexto, i === 0 && estilos.chipTextoAtivo]}>{f}</Text>
-            </View>
+          {filtros.map((f) => (
+            <TouchableOpacity key={f} style={[estilos.chip, filtro === f && estilos.chipAtivo]} onPress={() => setFiltro(f)}>
+              <Text style={[estilos.chipTexto, filtro === f && estilos.chipTextoAtivo]}>{f}</Text>
+            </TouchableOpacity>
           ))}
         </View>
 
         <View style={estilos.grade}>
-          {despensa.map((d) => (
-            <View key={d.id} style={estilos.cardItem}>
-              <Text style={estilos.itemNome}>{d.nome}</Text>
-              <View style={estilos.itemRodape}>
-                <Text style={estilos.itemNota} numberOfLines={1}>{d.nota}</Text>
-                <Text style={estilos.itemQtd}>{d.quantidade}</Text>
-              </View>
-            </View>
-          ))}
+          {despensaFiltrada.length === 0 ? (
+            <Text style={[estilos.vazio, { width: "100%" }]}>Nada por aqui. Marque itens da lista como comprados.</Text>
+          ) : (
+            despensaFiltrada.map((d) => (
+              <TouchableOpacity key={d.id} style={estilos.cardItem} onPress={() => navigation.navigate("NovoItemCompra", { itemCompra: d })}>
+                <Text style={estilos.itemNome}>{d.nome}</Text>
+                <View style={estilos.itemRodape}>
+                  <Text style={estilos.itemNota} numberOfLines={1}>{d.local || "Sem local"}</Text>
+                  <Text style={estilos.itemQtd}>{d.quantidade}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         <Text style={[estilos.secao, { marginTop: 8, marginBottom: 4 }]}>Lista de compras</Text>
-        <Text style={estilos.subSecao}>{faltam.length} itens faltam comprar</Text>
+        <Text style={estilos.subSecao}>{faltam.length} itens faltam comprar · toque no círculo para marcar</Text>
 
         <View style={estilos.cartaoLista}>
           {faltam.length === 0 ? <Text style={estilos.vazio}>Tudo comprado! Toque em “+ Adicionar item” para anotar algo novo.</Text> : faltam.map(linha)}
         </View>
-
-        {comprados.length > 0 ? (
-          <View>
-            <Text style={[estilos.secao, { marginBottom: 8 }]}>Já comprados</Text>
-            <View style={[estilos.cartaoLista, { backgroundColor: cores.cartao }]}>{comprados.map(linha)}</View>
-          </View>
-        ) : null}
       </ScrollView>
 
-      <TouchableOpacity style={estilos.botaoNovo} onPress={() => navigation.navigate("NovoItemCompra")}>
+      <TouchableOpacity activeOpacity={0.85} style={estilos.botaoNovo} onPress={() => navigation.navigate("NovoItemCompra")}>
         <Text style={estilos.botaoNovoTexto}>+ Adicionar item</Text>
       </TouchableOpacity>
     </View>
@@ -161,6 +185,7 @@ const estilos = StyleSheet.create({
     marginBottom: 8,
   },
   cardItem: {
+    ...sombra,
     width: "48%",
     backgroundColor: cores.cartao,
     borderRadius: 16,
@@ -197,6 +222,7 @@ const estilos = StyleSheet.create({
     marginBottom: 10,
   },
   cartaoLista: {
+    ...sombra,
     backgroundColor: cores.bege,
     borderRadius: 22,
     borderWidth: 1,
@@ -243,6 +269,7 @@ const estilos = StyleSheet.create({
     fontSize: 13,
   },
   botaoNovo: {
+    ...sombraForte,
     position: "absolute",
     bottom: 20,
     left: 20,

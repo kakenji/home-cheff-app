@@ -1,0 +1,20 @@
+{
+  "name": "homecheff-api",
+  "version": "1.0.0",
+  "description": "API REST do HomeCheff (Projeto Integrador - Entrega 4)",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "reset": "node src/resetarBanco.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0"
+  },
+  "private": true
+}
