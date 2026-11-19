@@ -1,4 +1,5 @@
 import React from "react";
+import { Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import InicioScreen from "../screens/inicio/InicioScreen";
@@ -17,9 +18,15 @@ export default function TabsPrincipais({ aoEntrarNoApoio }) {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: cores.cartao, borderTopColor: cores.borda },
+        popToTopOnBlur: true,
+        tabBarStyle: {
+          backgroundColor: cores.cartao,
+          borderTopColor: cores.borda,
+          ...(Platform.OS === "web" ? { height: 64, paddingTop: 6, paddingBottom: 8 } : {}),
+        },
         tabBarActiveTintColor: cores.verde,
         tabBarInactiveTintColor: cores.textoSuave,
+        tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
       }}
     >
       <Tab.Screen name="Início" component={InicioScreen} options={{ tabBarIcon: icone("home") }} />
