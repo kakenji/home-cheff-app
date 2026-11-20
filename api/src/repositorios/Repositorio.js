@@ -1,45 +1,47 @@
 const crypto = require("node:crypto");
 const banco = require("../banco");
 
+const SEM_ID_MONGO = { projection: { _id: 0 } };
+
 class Repositorio {
   constructor(nomeColecao, prefixoId) {
     this.nomeColecao = nomeColecao;
     this.prefixoId = prefixoId;
   }
 
-  get itens() {
+  get colecao() {
     return banco.colecao(this.nomeColecao);
   }
 
-  listar(filtro = () => true) {
-    return this.itens.filter(filtro);
+  async listar(consulta = {}) {
+    return this.colecao.find(consulta, SEM_ID_MONGO).sort({ _id: 1 }).toArray();
   }
 
-  buscarPorId(id) {
-    return this.itens.find((item) => item.id === id) ?? null;
+  async existe(consulta) {
+    return (await this.colecao.countDocuments(consulta, { limit: 1 })) > 0;
   }
 
-  criar(dados) {
+  async buscarPorId(id) {
+    return this.colecao.findOne({ id }, SEM_ID_MONGO);
+  }
+
+  async criar(dados) {
     const novo = { id: `${this.prefixoId}${crypto.randomUUID().slice(0, 8)}`, ...dados };
-    this.itens.push(novo);
-    banco.salvar();
+    await this.colecao.insertOne({ ...novo });
     return novo;
   }
 
-  atualizar(id, dados) {
-    const item = this.buscarPorId(id);
-    if (!item) return null;
-    Object.assign(item, dados, { id });
-    banco.salvar();
-    return item;
+  async atualizar(id, dados) {
+    return this.colecao.findOneAndUpdate(
+      { id },
+      { $set: { ...dados, id } },
+      { ...SEM_ID_MONGO, returnDocument: "after" }
+    );
   }
 
-  remover(id) {
-    const indice = this.itens.findIndex((item) => item.id === id);
-    if (indice === -1) return false;
-    this.itens.splice(indice, 1);
-    banco.salvar();
-    return true;
+  async remover(id) {
+    const { deletedCount } = await this.colecao.deleteOne({ id });
+    return deletedCount > 0;
   }
 }
 

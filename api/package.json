@@ -5,16 +5,17 @@
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "reset": "node src/resetarBanco.js"
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "reset": "node --env-file-if-exists=.env src/resetarBanco.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.9"
   },
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "mongodb": "^7.9.1"
   },
   "private": true
 }

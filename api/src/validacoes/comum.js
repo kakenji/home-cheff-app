@@ -15,11 +15,11 @@ function lancarSeHouverErros(erros) {
   if (erros.length > 0) throw requisicaoInvalida(erros);
 }
 
-function garantirUsuarioExiste(usuarioId) {
+async function garantirUsuarioExiste(usuarioId) {
   if (!usuarioId) {
     throw requisicaoInvalida(["usuarioId é obrigatório."]);
   }
-  if (!repositorios.usuarios.buscarPorId(usuarioId)) {
+  if (!(await repositorios.usuarios.existe({ id: usuarioId }))) {
     throw new ErroHttp(422, `Relacionamento inválido: o usuário "${usuarioId}" não existe.`);
   }
 }

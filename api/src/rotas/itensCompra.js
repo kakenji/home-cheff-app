@@ -18,13 +18,13 @@ function montar(corpo, atual = {}) {
   };
 }
 
-function validar(dados) {
+async function validar(dados) {
   const erros = [];
   if (!dados.nome) erros.push("nome é obrigatório.");
   if (typeof dados.comprado !== "boolean") erros.push("comprado deve ser true ou false.");
   if (!LOCAIS.includes(dados.local)) erros.push(`local deve ser um destes: ${LOCAIS.filter(Boolean).join(", ")}.`);
   lancarSeHouverErros(erros);
-  garantirUsuarioExiste(dados.usuarioId);
+  await garantirUsuarioExiste(dados.usuarioId);
 }
 
 function ehGatilho(corpo) {
@@ -35,45 +35,45 @@ function responderAreaSegura(res) {
   res.set("x-area-segura", "true").status(202).json({ areaSegura: true });
 }
 
-function buscar(id) {
-  const item = repo.buscarPorId(id);
+async function buscar(id) {
+  const item = await repo.buscarPorId(id);
   if (!item) throw naoEncontrado("Item de compra");
   return item;
 }
 
-rotas.get("/", (req, res) => {
+rotas.get("/", async (req, res) => {
   const { usuarioId, comprado } = req.query;
-  res.json(
-    repo.listar(
-      (i) => (!usuarioId || i.usuarioId === usuarioId) && (comprado === undefined || String(i.comprado) === comprado)
-    )
-  );
+  if (comprado !== undefined && comprado !== "true" && comprado !== "false") return res.json([]);
+  const consulta = {};
+  if (usuarioId) consulta.usuarioId = usuarioId;
+  if (comprado !== undefined) consulta.comprado = comprado === "true";
+  res.json(await repo.listar(consulta));
 });
 
-rotas.get("/:id", (req, res) => {
-  res.json(buscar(req.params.id));
+rotas.get("/:id", async (req, res) => {
+  res.json(await buscar(req.params.id));
 });
 
-rotas.post("/", (req, res) => {
+rotas.post("/", async (req, res) => {
   corpoObrigatorio(req.body);
   if (ehGatilho(req.body)) return responderAreaSegura(res);
   const dados = montar(req.body);
-  validar(dados);
-  res.status(201).json(repo.criar(dados));
+  await validar(dados);
+  res.status(201).json(await repo.criar(dados));
 });
 
-rotas.put("/:id", (req, res) => {
+rotas.put("/:id", async (req, res) => {
   corpoObrigatorio(req.body);
-  const atual = buscar(req.params.id);
+  const atual = await buscar(req.params.id);
   if (ehGatilho(req.body)) return responderAreaSegura(res);
   const dados = montar(req.body, atual);
-  validar(dados);
-  res.json(repo.atualizar(atual.id, dados));
+  await validar(dados);
+  res.json(await repo.atualizar(atual.id, dados));
 });
 
-rotas.delete("/:id", (req, res) => {
-  const item = buscar(req.params.id);
-  repo.remover(item.id);
+rotas.delete("/:id", async (req, res) => {
+  const item = await buscar(req.params.id);
+  await repo.remover(item.id);
   res.status(204).end();
 });
 

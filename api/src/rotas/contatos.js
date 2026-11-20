@@ -17,50 +17,51 @@ function montar(corpo, atual = {}) {
   };
 }
 
-function validar(dados, idAtual) {
+async function validar(dados, idAtual) {
   const erros = [];
   if (!dados.nome) erros.push("nome é obrigatório.");
   const digitos = apenasDigitos(dados.celular);
   if (digitos.length < 10 || digitos.length > 13) erros.push("celular deve ter DDD + número (10 a 13 dígitos).");
   lancarSeHouverErros(erros);
-  garantirUsuarioExiste(dados.usuarioId);
-  const repetido = repo.listar((c) => c.usuarioId === dados.usuarioId && c.id !== idAtual && apenasDigitos(c.celular) === digitos);
-  if (repetido.length > 0) throw conflito("Este celular já está na sua rede de apoio.");
+  await garantirUsuarioExiste(dados.usuarioId);
+  const outros = await repo.listar({ usuarioId: dados.usuarioId, id: { $ne: idAtual ?? null } });
+  const repetido = outros.some((c) => apenasDigitos(c.celular) === digitos);
+  if (repetido) throw conflito("Este celular já está na sua rede de apoio.");
 }
 
-function buscar(id) {
-  const contato = repo.buscarPorId(id);
+async function buscar(id) {
+  const contato = await repo.buscarPorId(id);
   if (!contato) throw naoEncontrado("Contato");
   return contato;
 }
 
-rotas.get("/", (req, res) => {
+rotas.get("/", async (req, res) => {
   const { usuarioId } = req.query;
-  res.json(repo.listar((c) => !usuarioId || c.usuarioId === usuarioId));
+  res.json(await repo.listar(usuarioId ? { usuarioId } : {}));
 });
 
-rotas.get("/:id", (req, res) => {
-  res.json(buscar(req.params.id));
+rotas.get("/:id", async (req, res) => {
+  res.json(await buscar(req.params.id));
 });
 
-rotas.post("/", (req, res) => {
+rotas.post("/", async (req, res) => {
   corpoObrigatorio(req.body);
   const dados = montar(req.body);
-  validar(dados);
-  res.status(201).json(repo.criar(dados));
+  await validar(dados);
+  res.status(201).json(await repo.criar(dados));
 });
 
-rotas.put("/:id", (req, res) => {
+rotas.put("/:id", async (req, res) => {
   corpoObrigatorio(req.body);
-  const atual = buscar(req.params.id);
+  const atual = await buscar(req.params.id);
   const dados = montar(req.body, atual);
-  validar(dados, atual.id);
-  res.json(repo.atualizar(atual.id, dados));
+  await validar(dados, atual.id);
+  res.json(await repo.atualizar(atual.id, dados));
 });
 
-rotas.delete("/:id", (req, res) => {
-  const contato = buscar(req.params.id);
-  repo.remover(contato.id);
+rotas.delete("/:id", async (req, res) => {
+  const contato = await buscar(req.params.id);
+  await repo.remover(contato.id);
   res.status(204).end();
 });
 

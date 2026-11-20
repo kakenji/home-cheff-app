@@ -31,49 +31,49 @@ function montar(corpo, atual = {}) {
   };
 }
 
-function validar(dados) {
+async function validar(dados) {
   const erros = [];
   if (!dataValida(dados.data)) erros.push("data deve estar no formato dd/mm/aaaa e ser uma data real.");
   if (!horaValida(dados.hora)) erros.push("hora deve estar no formato hh:mm.");
   if (!dados.descricao) erros.push("descricao é obrigatória.");
   lancarSeHouverErros(erros);
-  garantirUsuarioExiste(dados.usuarioId);
+  await garantirUsuarioExiste(dados.usuarioId);
 }
 
-function buscar(id) {
-  const ocorrencia = repo.buscarPorId(id);
+async function buscar(id) {
+  const ocorrencia = await repo.buscarPorId(id);
   if (!ocorrencia) throw naoEncontrado("Registro");
   return ocorrencia;
 }
 
-rotas.get("/", (req, res) => {
+rotas.get("/", async (req, res) => {
   const { usuarioId } = req.query;
-  const lista = repo.listar((o) => !usuarioId || o.usuarioId === usuarioId);
+  const lista = await repo.listar(usuarioId ? { usuarioId } : {});
   res.json([...lista].sort((a, b) => chaveOrdenacao(b).localeCompare(chaveOrdenacao(a))));
 });
 
-rotas.get("/:id", (req, res) => {
-  res.json(buscar(req.params.id));
+rotas.get("/:id", async (req, res) => {
+  res.json(await buscar(req.params.id));
 });
 
-rotas.post("/", (req, res) => {
+rotas.post("/", async (req, res) => {
   corpoObrigatorio(req.body);
   const dados = montar(req.body);
-  validar(dados);
-  res.status(201).json(repo.criar(dados));
+  await validar(dados);
+  res.status(201).json(await repo.criar(dados));
 });
 
-rotas.put("/:id", (req, res) => {
+rotas.put("/:id", async (req, res) => {
   corpoObrigatorio(req.body);
-  const atual = buscar(req.params.id);
+  const atual = await buscar(req.params.id);
   const dados = montar(req.body, atual);
-  validar(dados);
-  res.json(repo.atualizar(atual.id, dados));
+  await validar(dados);
+  res.json(await repo.atualizar(atual.id, dados));
 });
 
-rotas.delete("/:id", (req, res) => {
-  const ocorrencia = buscar(req.params.id);
-  repo.remover(ocorrencia.id);
+rotas.delete("/:id", async (req, res) => {
+  const ocorrencia = await buscar(req.params.id);
+  await repo.remover(ocorrencia.id);
   res.status(204).end();
 });
 
