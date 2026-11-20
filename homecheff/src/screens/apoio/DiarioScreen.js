@@ -1,21 +1,28 @@
 import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { cores, fonteTitulo } from "../../tema/tema";
-import { ocorrencias } from "../../dados/mockData";
+import EstadoCarregamento from "../../componentes/EstadoCarregamento";
+import { avisarErro, confirmar } from "../../componentes/alertas";
+import useDadosDaApi from "../../hooks/useDadosDaApi";
+import { listarOcorrencias, apagarOcorrencia } from "../../servicos/ocorrencias";
+import { cores, fonteTitulo, sombra, sombraForte } from "../../tema/tema";
 
 export default function DiarioScreen({ navigation }) {
-  const lista = [...ocorrencias].reverse();
+  const { dados: lista, setDados: setLista, carregando, erro, recarregar } = useDadosDaApi(listarOcorrencias, []);
 
   function aoApagar(registro) {
-    Alert.alert(
-      "Apagar definitivamente?",
-      "O registro será destruído e não poderá ser recuperado. Nesta etapa nada é apagado de verdade.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Apagar", style: "destructive" },
-      ]
-    );
+    confirmar("Apagar definitivamente?", "O registro será destruído e não poderá ser recuperado.", "Apagar", async () => {
+      try {
+        await apagarOcorrencia(registro.id);
+        setLista((atuais) => atuais.filter((o) => o.id !== registro.id));
+      } catch (e) {
+        avisarErro(e, "Não foi possível apagar");
+      }
+    });
+  }
+
+  if (erro || (carregando && lista.length === 0)) {
+    return <EstadoCarregamento carregando={carregando} erro={erro} aoTentarNovamente={recarregar} />;
   }
 
   return (
@@ -24,7 +31,9 @@ export default function DiarioScreen({ navigation }) {
         data={lista}
         keyExtractor={(item) => item.id}
         contentContainerStyle={estilos.lista}
-        ListHeaderComponent={<Text style={estilos.intro}>Um registro só seu. Nesta demonstração, nada é enviado para ninguém.</Text>}
+        refreshing={carregando}
+        onRefresh={recarregar}
+        ListHeaderComponent={<Text style={estilos.intro}>Um registro só seu, do mais recente para o mais antigo.</Text>}
         ListEmptyComponent={<Text style={estilos.vazio}>Nenhum registro ainda. Toque em “+ Novo registro”.</Text>}
         renderItem={({ item }) => (
           <View style={estilos.card}>
@@ -39,7 +48,7 @@ export default function DiarioScreen({ navigation }) {
         )}
       />
 
-      <TouchableOpacity style={estilos.botaoNovo} onPress={() => navigation.navigate("NovaOcorrencia")}>
+      <TouchableOpacity activeOpacity={0.85} style={estilos.botaoNovo} onPress={() => navigation.navigate("NovaOcorrencia")}>
         <Text style={estilos.botaoNovoTexto}>+ Novo registro</Text>
       </TouchableOpacity>
     </View>
@@ -68,6 +77,7 @@ const estilos = StyleSheet.create({
     marginTop: 24,
   },
   card: {
+    ...sombra,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: cores.bege,
@@ -96,6 +106,7 @@ const estilos = StyleSheet.create({
     paddingLeft: 12,
   },
   botaoNovo: {
+    ...sombraForte,
     position: "absolute",
     bottom: 20,
     left: 20,
