@@ -29,7 +29,9 @@ export default function TabsPrincipais({ aoEntrarNoApoio }) {
         tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
       }}
     >
-      <Tab.Screen name="Início" component={InicioScreen} options={{ tabBarIcon: icone("home") }} />
+      <Tab.Screen name="Início" options={{ tabBarIcon: icone("home") }}>
+        {(props) => <InicioScreen {...props} aoEntrarNoApoio={aoEntrarNoApoio} />}
+      </Tab.Screen>
       <Tab.Screen name="Receitas" component={ReceitasStack} options={{ tabBarIcon: icone("book") }} />
       <Tab.Screen name="Despensa" options={{ tabBarIcon: icone("basket") }}>
         {() => <ComprasStack aoEntrarNoApoio={aoEntrarNoApoio} />}

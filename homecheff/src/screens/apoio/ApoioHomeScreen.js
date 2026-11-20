@@ -4,9 +4,11 @@ import CabecalhoApoio from "../../componentes/CabecalhoApoio";
 import BotaoPrincipal from "../../componentes/BotaoPrincipal";
 import { confirmar } from "../../componentes/alertas";
 import { cores, fonteTitulo } from "../../tema/tema";
-import { canaisOficiais, canalEmergencia } from "../../dados/canaisOficiais";
+import { canaisOficiais, canalEmergencia, WHATSAPP_EMERGENCIA } from "../../dados/canaisOficiais";
+import { MENSAGEM_AJUDA_PADRAO } from "../../dados/mensagemAjuda";
 import useDadosDaApi from "../../hooks/useDadosDaApi";
 import { listarContatos } from "../../servicos/contatos";
+import { buscarUsuarioAtual } from "../../servicos/usuarios";
 
 function abrirCanal(canal) {
   confirmar(canal.titulo, "Deseja abrir este canal agora?", "Abrir", () => Linking.openURL(canal.acao));
@@ -14,6 +16,16 @@ function abrirCanal(canal) {
 
 export default function ApoioHomeScreen({ navigation, aoSair }) {
   const { dados: contatos, carregando, erro } = useDadosDaApi(listarContatos, []);
+  const { dados: usuario } = useDadosDaApi(buscarUsuarioAtual);
+
+  function dispararEmergencia() {
+    const mensagem = usuario?.mensagemAjuda || MENSAGEM_AJUDA_PADRAO;
+    const url = `https://wa.me/${WHATSAPP_EMERGENCIA}?text=${encodeURIComponent(mensagem)}`;
+    Linking.openURL(url)
+      .catch(() => Linking.openURL(`sms:+${WHATSAPP_EMERGENCIA}?body=${encodeURIComponent(mensagem)}`))
+      .catch(() => {})
+      .finally(aoSair);
+  }
 
   return (
     <View style={estilos.container}>
@@ -24,6 +36,20 @@ export default function ApoioHomeScreen({ navigation, aoSair }) {
         <Text style={estilos.texto}>
           Este espaço reúne sua rede de apoio e um diário seguro, com canais oficiais de ajuda. Escolha apenas o que fizer sentido para você.
         </Text>
+
+        <TouchableOpacity
+          style={estilos.botaoEmergencia}
+          onPress={dispararEmergencia}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Emergência: enviar pedido de ajuda ao Ligue 180"
+        >
+          <Ionicons name="alert-circle" size={26} color="#fff" />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={estilos.botaoEmergenciaTitulo}>Emergência</Text>
+            <Text style={estilos.botaoEmergenciaSub}>Envia seu pedido de ajuda ao Ligue 180 e volta à cozinha</Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={[estilos.cartao, { backgroundColor: cores.verdeClaro }]}>
           <Text style={estilos.apoio}>REDE DE CONFIANÇA</Text>
@@ -133,6 +159,25 @@ const estilos = StyleSheet.create({
     lineHeight: 20,
     marginTop: 10,
     marginBottom: 18,
+  },
+  botaoEmergencia: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: cores.perigo,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 14,
+  },
+  botaoEmergenciaTitulo: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  botaoEmergenciaSub: {
+    fontSize: 12,
+    color: "#fff",
+    opacity: 0.9,
+    marginTop: 2,
   },
   cartao: {
     borderRadius: 20,

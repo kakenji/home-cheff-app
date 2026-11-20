@@ -2,9 +2,17 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { cores } from "../tema/tema";
 
-export default function BotaoPrincipal({ texto, onPress, tipo = "primario", carregando = false }) {
+export default function BotaoPrincipal({ texto, onPress, onLongPress, delayLongPress, tipo = "primario", carregando = false }) {
   return (
-    <TouchableOpacity style={[estilos.botao, estilos[tipo], carregando && estilos.desabilitado]} onPress={onPress} disabled={carregando} activeOpacity={0.85} accessibilityRole="button">
+    <TouchableOpacity
+      style={[estilos.botao, estilos[tipo], carregando && estilos.desabilitado]}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={delayLongPress}
+      disabled={carregando}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+    >
       {carregando ? (
         <ActivityIndicator color={tipo === "primario" ? "#fff" : cores.verde} />
       ) : (

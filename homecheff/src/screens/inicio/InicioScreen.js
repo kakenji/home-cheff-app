@@ -19,7 +19,9 @@ function dataDeHoje() {
   return `${DIAS[hoje.getDay()]}, ${hoje.getDate()} DE ${MESES[hoje.getMonth()]}`;
 }
 
-export default function InicioScreen({ navigation }) {
+const TEMPO_ATALHO_APOIO_MS = 5000;
+
+export default function InicioScreen({ navigation, aoEntrarNoApoio }) {
   const buscar = useCallback(async () => {
     const [usuario, receitas, itens] = await Promise.all([buscarUsuarioAtual(), listarReceitas(), listarItensCompra()]);
     return { usuario, receitas, faltam: itens.filter((c) => !c.comprado).length };
@@ -64,6 +66,8 @@ export default function InicioScreen({ navigation }) {
               <BotaoPrincipal
                 texto="Ver receita"
                 onPress={() => navigation.navigate("Receitas", { screen: "DetalheReceita", params: { receitaId: ideia.id }, initial: false })}
+                onLongPress={aoEntrarNoApoio}
+                delayLongPress={TEMPO_ATALHO_APOIO_MS}
               />
             </View>
           </View>
